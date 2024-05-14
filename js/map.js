@@ -1,55 +1,68 @@
-let data = [
-  {
-    title: "Salvador",
-    lat: -12.9714,
-    long: -38.5014,
-  },
-  {
-    title: "Feira de Santana",
-    lat: -12.2667,
-    long: -38.9667,
-  },
-  {
-    title: "Mucugê",
-    lat: -13.0019,
-    long: -41.3703,
-  },
-  {
-    title: "João Pessoa",
-    lat: -7.1195,
-    long: -34.845,
-  },
-  {
-    title: "Olivença",
-    lat: -15.2486,
-    long: -39.1239,
-  },
-  {
-    title: "Caeté-Açu",
-    lat: -12.6145,
-    long: -38.3937,
-  },
-  {
-    title: "Boipeba",
-    lat: -13.51,
-    long: -38.9593,
-  },
-  {
-    title: "Lucena",
-    lat: -6.9153,
-    long: -34.8639,
-  },
-];
+// Global variables
+let map;
+////path to csv file
+let path = "data/dunitz.csv";
+let markers = L.featureGroup();
 
-var map = L.map("map").setView([-12.9714, -38.5014], 13);
+//functions
+//// create the map
+const createMap = () => {
+  map = L.map("map").setView([0, 0], 3);
 
-L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-  attribution:
-    '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-}).addTo(map);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution:
+      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+  }).addTo(map);
+};
+//// read the csv file
+const readCSV = () => {
+  Papa.parse(path, {
+    header: true,
+    download: true,
+    complete: function (data) {
+      console.log(data);
 
-// L.marker([-12.9714, -38.5014]).addTo(map).bindPopup("Salvador");
+      //map the data
+      mapCSV(data);
+    },
+  });
+};
 
-data.forEach(function (item) {
-  let marker = L.marker([item.lat, item.long]).addTo(map).bindPopup(item.title);
+function mapCSV(data) {
+  // circle options
+  let circleOptions = {
+    radius: 5,
+    weight: 1,
+    color: "white",
+    fillColor: "dodgerblue",
+    fillOpacity: 1,
+  };
+
+  // loop through each entry
+  data.data.forEach(function (item, index) {
+    // create a marker
+    let marker = L.circleMarker(
+      [item.latitude, item.longitude],
+      circleOptions
+    ).on("mouseover", function () {
+      this.bindPopup(
+        `${item.title}<br><img src="${item.thumbnail_url}">`
+      ).openPopup();
+    });
+
+    // add marker to featuregroup
+    markers.addLayer(marker);
+  });
+
+  // add featuregroup to map
+  markers.addTo(map);
+
+  // fit map to markers
+  map.fitBounds(markers.getBounds());
+}
+
+// initialize
+$(document).ready(function () {
+  createMap();
+  readCSV();
 });
