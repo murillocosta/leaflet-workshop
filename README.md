@@ -1,1 +1,1 @@
-# leaflet-workshop
+# Leaflet - Workshop
